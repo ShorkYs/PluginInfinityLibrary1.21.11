@@ -53,6 +53,7 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
                 case "book" -> player(sender, p -> bookCommand(p, args));
                 case "bookmeta" -> player(sender, p -> bookMetaCommand(p, args));
                 case "shelfcategory" -> player(sender, p -> shelfCategoryCommand(p, args));
+                case "library" -> player(sender, p -> libraryCommand(p, args));
                 case "reload" -> { requireAdmin(sender); plugin.reloadEverything(); msg(sender, "Infinity Library reloaded live."); }
                 default -> help(sender);
             }
@@ -172,6 +173,18 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
         msg(player, "Book metadata saved (category/rating/tags/comments).");
     }
 
+
+    private void libraryCommand(Player player, String[] args) {
+        if (args.length == 1) { plugin.getLibraryCommandService().openHome(player); return; }
+        switch (args[1].toLowerCase(Locale.ROOT)) {
+            case "search" -> { require(args, 3, "/il library search <query>"); plugin.getLibraryCommandService().search(player, String.join(" ", java.util.Arrays.copyOfRange(args, 2, args.length))); }
+            case "trending" -> plugin.getLibraryCommandService().route(player, "trending");
+            case "recommended" -> plugin.getLibraryCommandService().route(player, "recommended");
+            case "route" -> { require(args, 3, "/il library route <path>"); plugin.getLibraryCommandService().route(player, args[2]); }
+            default -> plugin.getLibraryCommandService().openHome(player);
+        }
+    }
+
     private void adminPlayer(CommandSender s, PlayerAction action) { requireAdmin(s); player(s, action); }
     private void player(CommandSender s, PlayerAction action) { if (!(s instanceof Player p)) throw new IllegalArgumentException("Players only."); action.run(p); }
     private void requireAdmin(CommandSender s) { if (!s.hasPermission("infinitylibrary.admin")) throw new IllegalArgumentException("Missing permission infinitylibrary.admin"); }
@@ -179,7 +192,7 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
     private void msg(CommandSender s, String m) { s.sendMessage(ChatColor.translateAlternateColorCodes('&', "&5[InfinityLibrary] &f" + m)); }
     private void help(CommandSender s) { msg(s, "Commands: /il gui, roomgui, home, wand, connectionwand, variationwand, bookshelfcategorywand, readingtablewand, readingseatwand, wandmode, connectionmode, variationmode, bookshelfcategorymode, pos1, pos2, addconnection, clearconnections, clearvariations, saveroom, applyvariations, savedefault, editroom, deleteroom, listrooms, setrange, genrange, toggleblocking, setblocker, reset, setstart, book, bookmeta, shelfcategory, roomchance, reload"); }
     @Override public List<String> onTabComplete(CommandSender s, Command c, String a, String[] args) {
-        if (args.length == 1) return List.of("gui","roomgui","stats","home","start","wand","connectionwand","connwand","variationwand","varwand","bookshelfcategorywand","shelfcatwand","readingtablewand","readingseatwand","wandmode","connectionmode","connmode","variationmode","varmode","bookshelfcategorymode","shelfcatmode","pos1","pos2","addconnection","clearconnections","clearvariations","saveroom","applyvariations","savedefault","editroom","deleteroom","listrooms","setrange","genrange","toggleblocking","setblocker","reset","setstart","book","bookmeta","shelfcategory","roomchance","reload").stream().filter(x -> x.startsWith(args[0].toLowerCase(Locale.ROOT))).toList();
+        if (args.length == 1) return List.of("gui","roomgui","stats","home","start","wand","connectionwand","connwand","variationwand","varwand","bookshelfcategorywand","shelfcatwand","readingtablewand","readingseatwand","wandmode","connectionmode","connmode","variationmode","varmode","bookshelfcategorymode","shelfcatmode","pos1","pos2","addconnection","clearconnections","clearvariations","saveroom","applyvariations","savedefault","editroom","deleteroom","listrooms","setrange","genrange","toggleblocking","setblocker","reset","setstart","book","bookmeta","shelfcategory","roomchance","library","reload").stream().filter(x -> x.startsWith(args[0].toLowerCase(Locale.ROOT))).toList();
         if (args.length == 2 && args[0].equalsIgnoreCase("wandmode")) return List.of("pos1", "pos2");
         if (args.length == 2 && (args[0].equalsIgnoreCase("connectionmode") || args[0].equalsIgnoreCase("connmode"))) return List.of("conn");
         if (args.length == 2 && args[0].equalsIgnoreCase("book")) return List.of("public", "private", "edit");

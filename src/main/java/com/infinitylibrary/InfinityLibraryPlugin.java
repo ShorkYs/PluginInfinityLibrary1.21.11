@@ -1,6 +1,8 @@
 package com.infinitylibrary;
 
 import com.infinitylibrary.command.CommandHandler;
+import com.infinitylibrary.lib.command.LibraryCommandService;
+import com.infinitylibrary.lib.data.LibraryDatabase;
 import com.infinitylibrary.engine.GenerationEngine;
 import com.infinitylibrary.gui.GUIManager;
 import com.infinitylibrary.listener.BookListener;
@@ -18,6 +20,8 @@ public final class InfinityLibraryPlugin extends JavaPlugin {
     private BookStorageManager bookStorageManager;
     private GUIManager guiManager;
     private SelectionManager selectionManager;
+    private LibraryCommandService libraryCommandService;
+    private LibraryDatabase libraryDatabase;
 
     @Override public void onEnable() {
         saveDefaultConfig();
@@ -26,6 +30,9 @@ public final class InfinityLibraryPlugin extends JavaPlugin {
         selectionManager = new SelectionManager(this);
         guiManager = new GUIManager(this);
         generationEngine = new GenerationEngine(this, roomManager); generationEngine.start();
+        libraryDatabase = new LibraryDatabase(this);
+        try { libraryDatabase.migrate(); } catch (Exception ex) { getLogger().warning("Database migration failed: " + ex.getMessage()); }
+        libraryCommandService = new LibraryCommandService(this);
         CommandHandler handler = new CommandHandler(this);
         PluginCommand command = getCommand("infinitylibrary");
         if (command != null) { command.setExecutor(handler); command.setTabCompleter(handler); }
@@ -53,4 +60,5 @@ public final class InfinityLibraryPlugin extends JavaPlugin {
     public BookStorageManager getBookStorageManager() { return bookStorageManager; }
     public GUIManager getGuiManager() { return guiManager; }
     public SelectionManager getSelectionManager() { return selectionManager; }
+    public LibraryCommandService getLibraryCommandService() { return libraryCommandService; }
 }
