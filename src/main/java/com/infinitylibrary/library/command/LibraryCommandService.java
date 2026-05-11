@@ -1,15 +1,12 @@
 package com.infinitylibrary.library.command;
 
 import com.infinitylibrary.InfinityLibraryPlugin;
-import com.infinitylibrary.library.book.BookPage;
 import com.infinitylibrary.library.book.BookRenderer;
 import com.infinitylibrary.library.book.BookSession;
 import com.infinitylibrary.library.model.LibraryEntry;
-import com.infinitylibrary.library.recommendation.RecommendationService;
 import com.infinitylibrary.library.route.RouteRegistry;
 import com.infinitylibrary.library.search.LibrarySearchService;
 import com.infinitylibrary.storage.BookStorageManager;
-import com.infinitylibrary.storage.StoredBook;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 
@@ -21,7 +18,6 @@ public class LibraryCommandService {
     private final InfinityLibraryPlugin plugin;
     private final BookRenderer renderer = new BookRenderer();
     private final LibrarySearchService searchService = new LibrarySearchService();
-    private final RecommendationService recommendationService = new RecommendationService();
     private final RouteRegistry routeRegistry = new RouteRegistry();
     private final Map<UUID, BookSession> sessions = new ConcurrentHashMap<>();
 
@@ -42,12 +38,9 @@ public class LibraryCommandService {
     public void route(Player player, String route) {
         BookSession session = sessions.computeIfAbsent(player.getUniqueId(), BookSession::new);
         session.pushRoute(route);
-        if ("trending".equalsIgnoreCase(route)) {
-            openEntries(player, "Trending this week", recommendationService.trending(entries(), 20));
-            return;
-        }
-        if ("recommended".equalsIgnoreCase(route)) {
-            openEntries(player, "Recommended for you", recommendationService.trending(entries(), 20));
+        if ("trending".equalsIgnoreCase(route) || "recommended".equalsIgnoreCase(route)) {
+            String title = "trending".equalsIgnoreCase(route) ? "Trending this week" : "Recommended for you";
+            openEntries(player, title, rankedEntries(20));
             return;
         }
         routeRegistry.resolve(route, player, session);
@@ -70,14 +63,27 @@ public class LibraryCommandService {
         renderer.open(player, "Library", "Archivist", renderer.splitLines(lines));
     }
 
+    private List<LibraryEntry> rankedEntries(int limit) {
+        return entries().stream()
+                .sorted(Comparator.comparingLong((LibraryEntry e) -> e.views() + (e.likes() * 3)).reversed())
+                .limit(limit)
+                .toList();
+    }
+
     private List<LibraryEntry> entries() {
         BookStorageManager storage = plugin.getBookStorageManager();
         return storage.allBooks().stream().map(this::fromStored).toList();
     }
 
-    private LibraryEntry fromStored(StoredBook book) {
+    private LibraryEntry fromStored(BookStorageManager.StoredBook book) {
         String tagLine = book.tags() == null ? "" : book.tags();
         List<String> tags = tagLine.isBlank() ? List.of() : Arrays.stream(tagLine.split(",")).map(String::trim).filter(s -> !s.isBlank()).toList();
-        return new LibraryEntry(book.id(), book.title(), book.author(), book.category().isBlank() ? "uncategorized" : book.category(), tags, book.pages(), "", Instant.parse(book.insertedAt()), 0, 0);
+        Instant createdAt;
+        try {
+            createdAt = Instant.parse(book.insertedAt());
+        } catch (Exception ignored) {
+            createdAt = Instant.now();
+        }
+        return new LibraryEntry(book.id(), book.title(), book.author(), book.category().isBlank() ? "uncategorized" : book.category(), tags, book.pages(), "", createdAt, 0, 0);
     }
 }
