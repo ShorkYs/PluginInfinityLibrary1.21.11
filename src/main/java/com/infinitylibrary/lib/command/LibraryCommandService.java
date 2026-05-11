@@ -1,11 +1,11 @@
-package com.infinitylibrary.library.command;
+package com.infinitylibrary.lib.command;
 
 import com.infinitylibrary.InfinityLibraryPlugin;
-import com.infinitylibrary.library.book.BookRenderer;
-import com.infinitylibrary.library.book.BookSession;
-import com.infinitylibrary.library.model.LibraryEntry;
-import com.infinitylibrary.library.route.RouteRegistry;
-import com.infinitylibrary.library.search.LibrarySearchService;
+import com.infinitylibrary.lib.book.BookRenderer;
+import com.infinitylibrary.lib.book.BookSession;
+import com.infinitylibrary.lib.model.LibraryEntry;
+import com.infinitylibrary.lib.route.RouteRegistry;
+import com.infinitylibrary.lib.search.LibrarySearchService;
 import com.infinitylibrary.storage.BookStorageManager;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;

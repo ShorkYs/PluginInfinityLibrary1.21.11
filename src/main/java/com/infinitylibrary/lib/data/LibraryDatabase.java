@@ -1,4 +1,4 @@
-package com.infinitylibrary.library.data;
+package com.infinitylibrary.lib.data;
 
 import com.infinitylibrary.InfinityLibraryPlugin;
 

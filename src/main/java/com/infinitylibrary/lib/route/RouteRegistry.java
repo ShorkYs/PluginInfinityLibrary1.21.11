@@ -1,6 +1,6 @@
-package com.infinitylibrary.library.route;
+package com.infinitylibrary.lib.route;
 
-import com.infinitylibrary.library.book.BookSession;
+import com.infinitylibrary.lib.book.BookSession;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;

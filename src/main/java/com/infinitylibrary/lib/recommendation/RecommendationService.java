@@ -1,6 +1,6 @@
-package com.infinitylibrary.library.recommendation;
+package com.infinitylibrary.lib.recommendation;
 
-import com.infinitylibrary.library.model.LibraryEntry;
+import com.infinitylibrary.lib.model.LibraryEntry;
 
 import java.util.Comparator;
 import java.util.List;

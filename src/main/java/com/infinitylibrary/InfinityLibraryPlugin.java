@@ -1,8 +1,8 @@
 package com.infinitylibrary;
 
 import com.infinitylibrary.command.CommandHandler;
-import com.infinitylibrary.library.command.LibraryCommandService;
-import com.infinitylibrary.library.data.LibraryDatabase;
+import com.infinitylibrary.lib.command.LibraryCommandService;
+import com.infinitylibrary.lib.data.LibraryDatabase;
 import com.infinitylibrary.engine.GenerationEngine;
 import com.infinitylibrary.gui.GUIManager;
 import com.infinitylibrary.listener.BookListener;

@@ -1,6 +1,6 @@
-package com.infinitylibrary.library.search;
+package com.infinitylibrary.lib.search;
 
-import com.infinitylibrary.library.model.LibraryEntry;
+import com.infinitylibrary.lib.model.LibraryEntry;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

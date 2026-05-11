@@ -1,4 +1,4 @@
-package com.infinitylibrary.library.service;
+package com.infinitylibrary.lib.service;
 
 import com.infinitylibrary.InfinityLibraryPlugin;
 import org.bukkit.Bukkit;

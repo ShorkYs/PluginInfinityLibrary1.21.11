@@ -1,4 +1,4 @@
-package com.infinitylibrary.library.model;
+package com.infinitylibrary.lib.model;
 
 import java.time.Instant;
 import java.util.List;

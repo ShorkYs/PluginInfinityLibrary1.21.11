@@ -1,4 +1,4 @@
-package com.infinitylibrary.library.book;
+package com.infinitylibrary.lib.book;
 
 import net.kyori.adventure.text.Component;
 
