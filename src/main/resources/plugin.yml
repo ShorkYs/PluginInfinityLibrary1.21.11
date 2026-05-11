@@ -9,7 +9,7 @@ commands:
   infinitylibrary:
     description: Manage the Infinity Library generator.
     usage: /<command> help
-    aliases: [ilibrary, il]
+    aliases: [ilibrary, il, library]
     permission: infinitylibrary.command
 permissions:
   infinitylibrary.command:
