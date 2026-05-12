@@ -36,7 +36,10 @@ public class GUIManager {
         Inventory inv = Bukkit.createInventory(null, 27, lecternTitle());
         for (int i = 0; i < 27; i++) inv.setItem(i, item(Material.BLACK_STAINED_GLASS_PANE, " ", List.of()));
         inv.setItem(13, item(Material.WRITABLE_BOOK, "&dClaim Daily Writable Book", List.of("&7One per player per day.", "&7Books start private and linked to you.")));
-        inv.setItem(11, item(Material.COMPASS, "&bSearch Stored Books", List.of("&7Click, then type a title in chat.", "&7Particles show the shelf location.")));
+        inv.setItem(11, item(Material.COMPASS, "&bSearch Stored Books", List.of("&7Click for smart book search.", "&7Includes recommendations and shelf routing.")));
+        inv.setItem(20, item(Material.BOOK, "&aBook Search Menu", List.of("&7Open smart search + recommendations.")));
+        inv.setItem(24, item(Material.COMPARATOR, "&eSettings", List.of("&7Favorite categories and tags.")));
+        inv.setItem(22, item(Material.PAPER, "&6Daily Newspaper", List.of("&7Latest player stories and events.")));
         inv.setItem(15, item(Material.ENDER_EYE, "&aLibrary Stats", List.of("&7Open the stats interface.")));
         player.openInventory(inv);
     }
@@ -141,4 +144,27 @@ public class GUIManager {
     private Material material(String path, Material fallback) { Material m = Material.matchMaterial(plugin.getConfig().getString(path, fallback.name())); return m == null ? fallback : m; }
     private ItemStack item(Material mat, String name, List<String> lore) { ItemStack stack = new ItemStack(mat); ItemMeta meta = stack.getItemMeta(); meta.setDisplayName(color(name)); meta.setLore(lore.stream().map(this::color).toList()); stack.setItemMeta(meta); return stack; }
     private String color(String s) { return ChatColor.translateAlternateColorCodes('&', s == null ? "" : s); }
+
+
+    public String bookSearchTitle() { return color("&5Book Search"); }
+    public void openBookSearchMenu(Player player) {
+        Inventory inv = Bukkit.createInventory(null, 54, bookSearchTitle());
+        for (int i = 0; i < 54; i++) inv.setItem(i, item(Material.GRAY_STAINED_GLASS_PANE, " ", List.of()));
+        inv.setItem(10, item(Material.COMPASS, "&bSearch by Query", List.of("&7Type query in chat.")));
+        inv.setItem(20, item(Material.ENCHANTED_BOOK, "&aRecommended for You", plugin.getBookStorageManager().recommendedForYou(player.getUniqueId())));
+        inv.setItem(22, item(Material.BOOKSHELF, "&dReaders Also Liked", plugin.getBookStorageManager().readersAlsoLiked(player.getUniqueId())));
+        inv.setItem(24, item(Material.BLAZE_POWDER, "&6Trending this Week", plugin.getBookStorageManager().trendingThisWeek()));
+        player.openInventory(inv);
+    }
+
+    public String settingsTitle() { return color("&5Library Settings"); }
+    public void openSettings(Player player) {
+        Inventory inv = Bukkit.createInventory(null, 27, settingsTitle());
+        for (int i=0;i<27;i++) inv.setItem(i, item(Material.BLACK_STAINED_GLASS_PANE, " ", List.of()));
+        inv.setItem(11, item(Material.BOOKSHELF, "&aFavorite category: lore", List.of("&7Click to toggle.")));
+        inv.setItem(13, item(Material.PAPER, "&aFavorite category: history", List.of("&7Click to toggle.")));
+        inv.setItem(15, item(Material.NAME_TAG, "&bFavorite tag: pvp", List.of("&7Click to toggle.")));
+        player.openInventory(inv);
+    }
+
 }

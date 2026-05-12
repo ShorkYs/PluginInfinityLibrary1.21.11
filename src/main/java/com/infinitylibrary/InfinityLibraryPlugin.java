@@ -1,11 +1,16 @@
 package com.infinitylibrary;
 
 import com.infinitylibrary.command.CommandHandler;
+import com.infinitylibrary.database.MySqlManager;
 import com.infinitylibrary.engine.GenerationEngine;
 import com.infinitylibrary.gui.GUIManager;
 import com.infinitylibrary.listener.BookListener;
 import com.infinitylibrary.listener.GUIListener;
+import com.infinitylibrary.listener.NewspaperListener;
 import com.infinitylibrary.listener.PlayerGenerationListener;
+import com.infinitylibrary.navigation.RouteRegistry;
+import com.infinitylibrary.newspaper.NewspaperManager;
+import com.infinitylibrary.recommendation.RecommendationEngine;
 import com.infinitylibrary.room.RoomManager;
 import com.infinitylibrary.selection.SelectionManager;
 import com.infinitylibrary.storage.BookStorageManager;
@@ -18,12 +23,20 @@ public final class InfinityLibraryPlugin extends JavaPlugin {
     private BookStorageManager bookStorageManager;
     private GUIManager guiManager;
     private SelectionManager selectionManager;
+    private MySqlManager mySqlManager;
+    private NewspaperManager newspaperManager;
+    private RecommendationEngine recommendationEngine;
+    private RouteRegistry routeRegistry;
 
     @Override public void onEnable() {
         saveDefaultConfig();
         roomManager = new RoomManager(this); roomManager.load();
         bookStorageManager = new BookStorageManager(this); bookStorageManager.load();
         selectionManager = new SelectionManager(this);
+        mySqlManager = new MySqlManager(this); mySqlManager.connect();
+        newspaperManager = new NewspaperManager(this);
+        recommendationEngine = new RecommendationEngine(bookStorageManager);
+        routeRegistry = new RouteRegistry();
         guiManager = new GUIManager(this);
         generationEngine = new GenerationEngine(this, roomManager); generationEngine.start();
         CommandHandler handler = new CommandHandler(this);
@@ -32,12 +45,14 @@ public final class InfinityLibraryPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerGenerationListener(this), this);
         getServer().getPluginManager().registerEvents(new BookListener(this), this);
         getServer().getPluginManager().registerEvents(new GUIListener(this), this);
+        getServer().getPluginManager().registerEvents(new NewspaperListener(this), this);
         getLogger().info("InfinityLibraryPlugin enabled.");
     }
 
     @Override public void onDisable() {
         if (generationEngine != null) generationEngine.stop();
         if (bookStorageManager != null) bookStorageManager.saveNow();
+        if (mySqlManager != null) mySqlManager.close();
     }
 
     public void reloadEverything() {
@@ -53,4 +68,8 @@ public final class InfinityLibraryPlugin extends JavaPlugin {
     public BookStorageManager getBookStorageManager() { return bookStorageManager; }
     public GUIManager getGuiManager() { return guiManager; }
     public SelectionManager getSelectionManager() { return selectionManager; }
+    public MySqlManager getMySqlManager() { return mySqlManager; }
+    public NewspaperManager getNewspaperManager() { return newspaperManager; }
+    public RecommendationEngine getRecommendationEngine() { return recommendationEngine; }
+    public RouteRegistry getRouteRegistry() { return routeRegistry; }
 }

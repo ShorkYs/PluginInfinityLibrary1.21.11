@@ -29,6 +29,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class BookStorageManager {
@@ -48,6 +49,9 @@ public class BookStorageManager {
     private final Map<UUID, PendingLecternBookEdit> pendingLecternEdits = new ConcurrentHashMap<>();
     private final Map<UUID, PendingReturnBookEdit> pendingReturnEdits = new ConcurrentHashMap<>();
     private final Map<String, String> shelfCategories = new ConcurrentHashMap<>();
+    private final Map<UUID, Set<String>> favoriteCategories = new ConcurrentHashMap<>();
+    private final Map<UUID, Set<String>> favoriteTags = new ConcurrentHashMap<>();
+    private final Map<UUID, Deque<String>> recentlyRead = new ConcurrentHashMap<>();
     private YamlConfiguration daily;
 
     public BookStorageManager(InfinityLibraryPlugin plugin) {
@@ -109,6 +113,7 @@ public class BookStorageManager {
         BookOwnership ownership = ownership(meta, contributor);
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
         String fp = fingerprint(meta);
+        recentlyRead.computeIfAbsent(contributor.getUniqueId(), u -> new ArrayDeque<>()).addFirst(safe(meta.getTitle()));
         Optional<StoredBook> existing = books.values().stream().filter(b -> fp.equals(fingerprint((BookMeta) Objects.requireNonNull(b.toItemStack().getItemMeta())))).findFirst();
         UUID id = existing.map(StoredBook::id).orElseGet(UUID::randomUUID);
         String insertedAt = existing.map(StoredBook::insertedAt).orElseGet(() -> Instant.now().toString());
@@ -436,6 +441,45 @@ public class BookStorageManager {
     private record PendingLecternBookEdit(ItemStack stack, String field) {}
     private record PendingReturnBookEdit(ItemStack stack, String field) {}
 
+
+    public void beginBookSearchPrompt(Player player) {
+        beginSearchPrompt(player);
+        player.sendMessage(ChatColor.GRAY + "Smart search supports title fragments and recommendations.");
+    }
+
+    public List<StoredBook> smartSearch(String query) {
+        String q = query.toLowerCase(Locale.ROOT);
+        return books.values().stream().filter(b -> b.title().toLowerCase(Locale.ROOT).contains(q) || b.category().toLowerCase(Locale.ROOT).contains(q) || b.tags().toLowerCase(Locale.ROOT).contains(q)).limit(20).toList();
+    }
+
+    public void toggleFavoriteCategory(UUID playerId, String category) {
+        favoriteCategories.computeIfAbsent(playerId, u -> new HashSet<>());
+        Set<String> set = favoriteCategories.get(playerId);
+        if (!set.add(category)) set.remove(category);
+    }
+
+    public void toggleFavoriteTag(UUID playerId, String tag) {
+        favoriteTags.computeIfAbsent(playerId, u -> new HashSet<>());
+        Set<String> set = favoriteTags.get(playerId);
+        if (!set.add(tag)) set.remove(tag);
+    }
+
+    public Set<String> favoriteCategories(UUID playerId) { return favoriteCategories.getOrDefault(playerId, Set.of()); }
+    public Set<String> favoriteTags(UUID playerId) { return favoriteTags.getOrDefault(playerId, Set.of()); }
+
+    public List<String> recommendedForYou(UUID playerId) {
+        Set<String> cats = favoriteCategories(playerId);
+        return books.values().stream().filter(b -> cats.isEmpty() || cats.contains(b.category())).map(StoredBook::title).distinct().limit(8).toList();
+    }
+
+    public List<String> readersAlsoLiked(UUID playerId) {
+        Set<String> recent = new HashSet<>(recentlyRead.getOrDefault(playerId, new ArrayDeque<>()));
+        return books.values().stream().map(StoredBook::title).filter(t -> !recent.contains(t)).distinct().limit(8).toList();
+    }
+
+    public List<String> trendingThisWeek() {
+        return books.values().stream().collect(Collectors.groupingBy(StoredBook::title, Collectors.counting())).entrySet().stream().sorted(Map.Entry.<String, Long>comparingByValue().reversed()).map(Map.Entry::getKey).limit(8).toList();
+    }
     public boolean canRead(Player player, ItemStack item) {
         if (item == null || item.getType() != Material.WRITTEN_BOOK || !item.hasItemMeta()) return true;
         PersistentDataContainer pdc = item.getItemMeta().getPersistentDataContainer();
