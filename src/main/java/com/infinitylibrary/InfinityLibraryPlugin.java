@@ -3,6 +3,7 @@ package com.infinitylibrary;
 import com.infinitylibrary.command.CommandHandler;
 import com.infinitylibrary.database.MySqlManager;
 import com.infinitylibrary.engine.GenerationEngine;
+import com.infinitylibrary.economy.EconomyManager;
 import com.infinitylibrary.gui.GUIManager;
 import com.infinitylibrary.listener.BookListener;
 import com.infinitylibrary.listener.GUIListener;
@@ -10,8 +11,10 @@ import com.infinitylibrary.listener.NewspaperListener;
 import com.infinitylibrary.listener.PlayerGenerationListener;
 import com.infinitylibrary.navigation.RouteRegistry;
 import com.infinitylibrary.newspaper.NewspaperManager;
+import com.infinitylibrary.placeholder.LibraryPlaceholderExpansion;
 import com.infinitylibrary.recommendation.RecommendationEngine;
 import com.infinitylibrary.rental.RentalManager;
+import com.infinitylibrary.scoreboard.LibraryScoreboardManager;
 import com.infinitylibrary.room.RoomManager;
 import com.infinitylibrary.selection.SelectionManager;
 import com.infinitylibrary.storage.BookStorageManager;
@@ -29,6 +32,8 @@ public final class InfinityLibraryPlugin extends JavaPlugin {
     private RecommendationEngine recommendationEngine;
     private RouteRegistry routeRegistry;
     private RentalManager rentalManager;
+    private EconomyManager economyManager;
+    private LibraryScoreboardManager scoreboardManager;
 
     @Override public void onEnable() {
         saveDefaultConfig();
@@ -40,6 +45,8 @@ public final class InfinityLibraryPlugin extends JavaPlugin {
         recommendationEngine = new RecommendationEngine(bookStorageManager);
         routeRegistry = new RouteRegistry();
         rentalManager = new RentalManager(this); rentalManager.load();
+        economyManager = new EconomyManager(this); economyManager.hook();
+        scoreboardManager = new LibraryScoreboardManager(this); scoreboardManager.start();
         guiManager = new GUIManager(this);
         generationEngine = new GenerationEngine(this, roomManager); generationEngine.start();
         CommandHandler handler = new CommandHandler(this);
@@ -49,12 +56,15 @@ public final class InfinityLibraryPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new BookListener(this), this);
         getServer().getPluginManager().registerEvents(new GUIListener(this), this);
         getServer().getPluginManager().registerEvents(new NewspaperListener(this), this);
+        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) new LibraryPlaceholderExpansion(this).register();
         getLogger().info("InfinityLibraryPlugin enabled.");
     }
 
     @Override public void onDisable() {
         if (generationEngine != null) generationEngine.stop();
         if (bookStorageManager != null) bookStorageManager.saveNow();
+        if (rentalManager != null) rentalManager.save();
+        if (scoreboardManager != null) scoreboardManager.stop();
         if (mySqlManager != null) mySqlManager.close();
     }
 
@@ -76,4 +86,6 @@ public final class InfinityLibraryPlugin extends JavaPlugin {
     public RecommendationEngine getRecommendationEngine() { return recommendationEngine; }
     public RouteRegistry getRouteRegistry() { return routeRegistry; }
     public RentalManager getRentalManager() { return rentalManager; }
+    public EconomyManager getEconomyManager() { return economyManager; }
+    public LibraryScoreboardManager getScoreboardManager() { return scoreboardManager; }
 }

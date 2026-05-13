@@ -35,8 +35,24 @@ public class RentalManager {
         this.keyToken = new NamespacedKey(plugin, "rental_key");
     }
 
-    public void load() { rentals.clear(); }
-    public void save() {}
+    public void load() {
+        rentals.clear();
+        if (!file.exists()) return;
+        YamlConfiguration y = YamlConfiguration.loadConfiguration(file);
+        ConfigurationSection root = y.getConfigurationSection("rentals");
+        if (root == null) return;
+        for (String key : root.getKeys(false)) {
+            ConfigurationSection section = root.getConfigurationSection(key);
+            if (section == null) continue;
+            rentals.put(UUID.fromString(key), RentalRecord.read(section));
+        }
+    }
+    public void save() {
+        YamlConfiguration y = new YamlConfiguration();
+        ConfigurationSection root = y.createSection("rentals");
+        rentals.forEach((uuid, record) -> record.write(root.createSection(uuid.toString())));
+        try { y.save(file); } catch (IOException ignored) { }
+    }
 
     public ItemStack createRentalKey() {
         ItemStack key = new ItemStack(Material.TRIPWIRE_HOOK);
@@ -62,18 +78,21 @@ public class RentalManager {
         rentals.put(player.getUniqueId(), new RentalRecord(placedRoom.get().instanceId().toString(), false, new HashSet<>()));
         hand.setAmount(hand.getAmount() - 1);
         spawnStatsHologram(player, placedRoom.get());
+        save();
     }
 
     public void invite(Player owner, Player invited) {
         RentalRecord record = rentals.get(owner.getUniqueId());
         if (record == null) throw new IllegalArgumentException("You do not own a rented room.");
         record.invited().add(invited.getUniqueId().toString());
+        save();
     }
 
     public void toggleLock(Player owner) {
         RentalRecord record = rentals.get(owner.getUniqueId());
         if (record == null) throw new IllegalArgumentException("You do not own a rented room.");
         record.setLocked(!record.locked());
+        save();
     }
 
     private void spawnStatsHologram(Player owner, PlacedRoom pr) {
@@ -90,6 +109,8 @@ public class RentalManager {
         private boolean locked;
         private final Set<String> invited;
         private RentalRecord(String roomInstance, boolean locked, Set<String> invited) { this.roomInstance = roomInstance; this.locked = locked; this.invited = invited; }
+        static RentalRecord read(ConfigurationSection section) { return new RentalRecord(section.getString("room-instance", ""), section.getBoolean("locked", false), new HashSet<>(section.getStringList("invited"))); }
+        void write(ConfigurationSection section) { section.set("room-instance", roomInstance); section.set("locked", locked); section.set("invited", new ArrayList<>(invited)); }
         boolean locked() { return locked; }
         void setLocked(boolean locked) { this.locked = locked; }
         Set<String> invited() { return invited; }

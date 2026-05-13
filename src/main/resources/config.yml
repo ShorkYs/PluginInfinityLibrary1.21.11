@@ -41,3 +41,6 @@ mysql:
   username: "root"
   password: ""
   pool-size: 8
+
+renting:
+  key-cost: 250.0

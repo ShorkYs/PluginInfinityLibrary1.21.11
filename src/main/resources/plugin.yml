@@ -5,6 +5,7 @@ api-version: '1.21'
 author: Codex
 website: https://example.invalid/infinity-library
 description: Procedural infinite library generator with live custom rooms and persistent written-book storage.
+softdepend: [Vault, PlaceholderAPI]
 commands:
   infinitylibrary:
     description: Manage the Infinity Library generator.

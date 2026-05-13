@@ -53,6 +53,8 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
                 case "book" -> player(sender, p -> bookCommand(p, args));
                 case "bookmeta" -> player(sender, p -> bookMetaCommand(p, args));
                 case "rent" -> player(sender, p -> rentCommand(p, args));
+                case "whereami" -> player(sender, this::whereAmI);
+                case "dailynews" -> player(sender, p -> plugin.getNewspaperManager().sendDailyPaper(p));
                 case "shelfcategory" -> player(sender, p -> shelfCategoryCommand(p, args));
                 case "reload" -> { requireAdmin(sender); plugin.reloadEverything(); msg(sender, "Infinity Library reloaded live."); }
                 default -> help(sender);
@@ -177,8 +179,11 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
         require(args, 2, "/il rent <buykey|claim|invite|lock>");
         switch (args[1].toLowerCase(Locale.ROOT)) {
             case "buykey" -> {
+                double cost = plugin.getConfig().getDouble("renting.key-cost", 250.0);
+                if (!plugin.getEconomyManager().available()) throw new IllegalArgumentException("Vault economy is not available.");
+                if (!plugin.getEconomyManager().withdraw(player, cost)) throw new IllegalArgumentException("You need " + plugin.getEconomyManager().format(cost) + " to buy a key.");
                 player.getInventory().addItem(plugin.getRentalManager().createRentalKey());
-                msg(player, "Purchased a rental key. Stand in a RENTING room and use /il rent claim.");
+                msg(player, "Purchased a rental key for " + plugin.getEconomyManager().format(cost) + ". Stand in a RENTING room and use /il rent claim.");
             }
             case "claim" -> {
                 plugin.getRentalManager().claim(player);
@@ -199,14 +204,22 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
         }
     }
 
+    private void whereAmI(Player player) {
+        var room = plugin.getGenerationEngine().roomAt(player.getLocation());
+        if (room.isEmpty()) { msg(player, "You are not inside a generated library room."); return; }
+        String id = room.get().roomId();
+        String type = plugin.getRoomManager().get(id).map(r -> r.type().name()).orElse("UNKNOWN");
+        msg(player, "Current room: " + id + " (" + type + ")");
+    }
+
     private void adminPlayer(CommandSender s, PlayerAction action) { requireAdmin(s); player(s, action); }
     private void player(CommandSender s, PlayerAction action) { if (!(s instanceof Player p)) throw new IllegalArgumentException("Players only."); action.run(p); }
     private void requireAdmin(CommandSender s) { if (!s.hasPermission("infinitylibrary.admin")) throw new IllegalArgumentException("Missing permission infinitylibrary.admin"); }
     private void require(String[] args, int n, String usage) { if (args.length < n) throw new IllegalArgumentException(usage); }
     private void msg(CommandSender s, String m) { s.sendMessage(ChatColor.translateAlternateColorCodes('&', "&5[InfinityLibrary] &f" + m)); }
-    private void help(CommandSender s) { msg(s, "Commands: /il gui, roomgui, home, wand, connectionwand, variationwand, bookshelfcategorywand, readingtablewand, readingseatwand, wandmode, connectionmode, variationmode, bookshelfcategorymode, pos1, pos2, addconnection, clearconnections, clearvariations, saveroom, applyvariations, savedefault, editroom, deleteroom, listrooms, setrange, genrange, toggleblocking, setblocker, reset, setstart, book, bookmeta, shelfcategory, roomchance, rent, reload"); }
+    private void help(CommandSender s) { msg(s, "Commands: /il gui, roomgui, home, wand, connectionwand, variationwand, bookshelfcategorywand, readingtablewand, readingseatwand, wandmode, connectionmode, variationmode, bookshelfcategorymode, pos1, pos2, addconnection, clearconnections, clearvariations, saveroom, applyvariations, savedefault, editroom, deleteroom, listrooms, setrange, genrange, toggleblocking, setblocker, reset, setstart, book, bookmeta, shelfcategory, roomchance, rent, whereami, dailynews, reload"); }
     @Override public List<String> onTabComplete(CommandSender s, Command c, String a, String[] args) {
-        if (args.length == 1) return List.of("gui","roomgui","stats","home","start","wand","connectionwand","connwand","variationwand","varwand","bookshelfcategorywand","shelfcatwand","readingtablewand","readingseatwand","wandmode","connectionmode","connmode","variationmode","varmode","bookshelfcategorymode","shelfcatmode","pos1","pos2","addconnection","clearconnections","clearvariations","saveroom","applyvariations","savedefault","editroom","deleteroom","listrooms","setrange","genrange","toggleblocking","setblocker","reset","setstart","book","bookmeta","shelfcategory","roomchance","rent","reload").stream().filter(x -> x.startsWith(args[0].toLowerCase(Locale.ROOT))).toList();
+        if (args.length == 1) return List.of("gui","roomgui","stats","home","start","wand","connectionwand","connwand","variationwand","varwand","bookshelfcategorywand","shelfcatwand","readingtablewand","readingseatwand","wandmode","connectionmode","connmode","variationmode","varmode","bookshelfcategorymode","shelfcatmode","pos1","pos2","addconnection","clearconnections","clearvariations","saveroom","applyvariations","savedefault","editroom","deleteroom","listrooms","setrange","genrange","toggleblocking","setblocker","reset","setstart","book","bookmeta","shelfcategory","roomchance","rent","whereami","dailynews","reload").stream().filter(x -> x.startsWith(args[0].toLowerCase(Locale.ROOT))).toList();
         if (args.length == 2 && args[0].equalsIgnoreCase("wandmode")) return List.of("pos1", "pos2");
         if (args.length == 2 && (args[0].equalsIgnoreCase("connectionmode") || args[0].equalsIgnoreCase("connmode"))) return List.of("conn");
         if (args.length == 2 && args[0].equalsIgnoreCase("book")) return List.of("public", "private", "edit");
