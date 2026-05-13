@@ -160,6 +160,9 @@ public class RoomManager {
                 List.of(new ConnectionPoint("west", new Vector3i(0,1,3), BlockFace.WEST,3,3), new ConnectionPoint("east", new Vector3i(8,1,3), BlockFace.EAST,3,3)), true, false));
         rooms.put("builtin_read", rectangular("builtin_read", RoomType.READ, 7, 6, 9,
                 List.of(new ConnectionPoint("north", new Vector3i(3,1,0), BlockFace.NORTH,3,3), new ConnectionPoint("south", new Vector3i(3,1,8), BlockFace.SOUTH,3,3)), false, true));
+        Room renting = rectangular("builtin_renting", RoomType.RENTING, 9, 6, 9,
+                List.of(new ConnectionPoint("west", new Vector3i(0,1,4), BlockFace.WEST,3,3), new ConnectionPoint("east", new Vector3i(8,1,4), BlockFace.EAST,3,3)), true, true);
+        rooms.put("builtin_renting", new Room(renting.id(), renting.type(), renting.size(), renting.connections(), renting.blocks(), renting.variations(), 20.0));
         rooms.put("builtin_elevator", rectangular("builtin_elevator", RoomType.FILLER, 7, 9, 7,
                 List.of(new ConnectionPoint("west", new Vector3i(0,1,3), BlockFace.WEST,3,3), new ConnectionPoint("up", new Vector3i(3,8,3), BlockFace.UP,3,2), new ConnectionPoint("down", new Vector3i(3,0,3), BlockFace.DOWN,3,2)), false, true));
     }

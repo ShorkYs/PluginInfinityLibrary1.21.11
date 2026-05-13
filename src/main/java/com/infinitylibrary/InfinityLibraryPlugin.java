@@ -11,6 +11,7 @@ import com.infinitylibrary.listener.PlayerGenerationListener;
 import com.infinitylibrary.navigation.RouteRegistry;
 import com.infinitylibrary.newspaper.NewspaperManager;
 import com.infinitylibrary.recommendation.RecommendationEngine;
+import com.infinitylibrary.rental.RentalManager;
 import com.infinitylibrary.room.RoomManager;
 import com.infinitylibrary.selection.SelectionManager;
 import com.infinitylibrary.storage.BookStorageManager;
@@ -27,6 +28,7 @@ public final class InfinityLibraryPlugin extends JavaPlugin {
     private NewspaperManager newspaperManager;
     private RecommendationEngine recommendationEngine;
     private RouteRegistry routeRegistry;
+    private RentalManager rentalManager;
 
     @Override public void onEnable() {
         saveDefaultConfig();
@@ -37,6 +39,7 @@ public final class InfinityLibraryPlugin extends JavaPlugin {
         newspaperManager = new NewspaperManager(this);
         recommendationEngine = new RecommendationEngine(bookStorageManager);
         routeRegistry = new RouteRegistry();
+        rentalManager = new RentalManager(this); rentalManager.load();
         guiManager = new GUIManager(this);
         generationEngine = new GenerationEngine(this, roomManager); generationEngine.start();
         CommandHandler handler = new CommandHandler(this);
@@ -72,4 +75,5 @@ public final class InfinityLibraryPlugin extends JavaPlugin {
     public NewspaperManager getNewspaperManager() { return newspaperManager; }
     public RecommendationEngine getRecommendationEngine() { return recommendationEngine; }
     public RouteRegistry getRouteRegistry() { return routeRegistry; }
+    public RentalManager getRentalManager() { return rentalManager; }
 }

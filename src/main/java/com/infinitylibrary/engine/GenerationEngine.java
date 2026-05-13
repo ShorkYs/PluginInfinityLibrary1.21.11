@@ -309,6 +309,18 @@ public class GenerationEngine {
         return generated;
     }
 
+    public Optional<PlacedRoom> roomAt(Location location) {
+        Vector3i point = Vector3i.from(location);
+        synchronized (placed) {
+            for (PlacedRoom pr : placed) {
+                if (point.x() >= pr.origin().x() && point.x() < pr.origin().x() + pr.size().x()
+                        && point.y() >= pr.origin().y() && point.y() < pr.origin().y() + pr.size().y()
+                        && point.z() >= pr.origin().z() && point.z() < pr.origin().z() + pr.size().z()) return Optional.of(pr);
+            }
+        }
+        return Optional.empty();
+    }
+
     public boolean placeRoomImmediately(String roomId) {
         Room room = roomManager.get(roomId).orElse(null);
         if (room == null || room.connections().isEmpty()) return false;
