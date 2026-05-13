@@ -8,8 +8,9 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Villager;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.Material;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.io.File;
@@ -43,12 +44,14 @@ public class RentalNpcManager {
 
     public void placeOrMove(Location location) {
         remove();
-        Villager villager = (Villager) location.getWorld().spawnEntity(location, EntityType.VILLAGER);
-        villager.setCustomName(ChatColor.LIGHT_PURPLE + "Library Assistant");
-        villager.setCustomNameVisible(true);
-        villager.setAI(false);
-        villager.getPersistentDataContainer().set(npcKey, PersistentDataType.BYTE, (byte) 1);
-        npcId = villager.getUniqueId();
+        ArmorStand npc = (ArmorStand) location.getWorld().spawnEntity(location, EntityType.ARMOR_STAND);
+        npc.setCustomName(ChatColor.LIGHT_PURPLE + "Library Assistant");
+        npc.setCustomNameVisible(true);
+        npc.setArms(true);
+        npc.setGravity(false);
+        npc.getEquipment().setHelmet(new ItemStack(Material.PLAYER_HEAD));
+        npc.getPersistentDataContainer().set(npcKey, PersistentDataType.BYTE, (byte) 1);
+        npcId = npc.getUniqueId();
         save();
     }
 

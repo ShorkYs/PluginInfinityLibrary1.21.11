@@ -10,6 +10,7 @@ import com.infinitylibrary.listener.GUIListener;
 import com.infinitylibrary.listener.NewspaperListener;
 import com.infinitylibrary.listener.PlayerGenerationListener;
 import com.infinitylibrary.listener.RentalNpcListener;
+import com.infinitylibrary.integration.DiscordWebhookManager;
 import com.infinitylibrary.navigation.RouteRegistry;
 import com.infinitylibrary.newspaper.NewspaperManager;
 import com.infinitylibrary.placeholder.LibraryPlaceholderExpansion;
@@ -37,6 +38,7 @@ public final class InfinityLibraryPlugin extends JavaPlugin {
     private EconomyManager economyManager;
     private LibraryScoreboardManager scoreboardManager;
     private RentalNpcManager rentalNpcManager;
+    private DiscordWebhookManager discordWebhookManager;
 
     @Override public void onEnable() {
         saveDefaultConfig();
@@ -51,6 +53,7 @@ public final class InfinityLibraryPlugin extends JavaPlugin {
         economyManager = new EconomyManager(this); economyManager.hook();
         scoreboardManager = new LibraryScoreboardManager(this); scoreboardManager.start();
         rentalNpcManager = new RentalNpcManager(this); rentalNpcManager.load();
+        discordWebhookManager = new DiscordWebhookManager(this);
         guiManager = new GUIManager(this);
         generationEngine = new GenerationEngine(this, roomManager); generationEngine.start();
         CommandHandler handler = new CommandHandler(this);
@@ -62,6 +65,7 @@ public final class InfinityLibraryPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new NewspaperListener(this), this);
         getServer().getPluginManager().registerEvents(new RentalNpcListener(this), this);
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) new LibraryPlaceholderExpansion(this).register();
+        discordWebhookManager.sendChanged("Plugin Enabled", "Infinity Library plugin was enabled.");
         getLogger().info("InfinityLibraryPlugin enabled.");
     }
 
@@ -95,4 +99,5 @@ public final class InfinityLibraryPlugin extends JavaPlugin {
     public EconomyManager getEconomyManager() { return economyManager; }
     public LibraryScoreboardManager getScoreboardManager() { return scoreboardManager; }
     public RentalNpcManager getRentalNpcManager() { return rentalNpcManager; }
+    public DiscordWebhookManager getDiscordWebhookManager() { return discordWebhookManager; }
 }

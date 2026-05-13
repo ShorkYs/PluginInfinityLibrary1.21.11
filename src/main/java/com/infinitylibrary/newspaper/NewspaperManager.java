@@ -23,6 +23,7 @@ public class NewspaperManager {
     public void record(String eventType, String playerName, String payload) {
         String line = "[" + eventType + "] " + playerName + " - " + payload;
         dailyEvents.computeIfAbsent(LocalDate.now(), d -> new ArrayList<>()).add(line);
+        plugin.getDiscordWebhookManager().sendAdded("Daily Newspaper Event", line);
         if (!plugin.getMySqlManager().isEnabled()) return;
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try (Connection c = plugin.getMySqlManager().connection(); PreparedStatement ps = c.prepareStatement("INSERT INTO newspaper_events(event_type, player_name, payload) VALUES(?,?,?)")) {

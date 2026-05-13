@@ -174,6 +174,8 @@ public class GUIManager {
         inv.setItem(11, item(Material.PLAYER_HEAD, "&d" + player.getName(), List.of("&7Books written: &f" + plugin.getBookStorageManager().playerCount(player.getUniqueId()))));
         inv.setItem(13, item(Material.GOLD_INGOT, "&6Balance", List.of("&7" + plugin.getEconomyManager().format(plugin.getEconomyManager().balance(player)))));
         inv.setItem(15, item(Material.PAPER, "&bDaily Newspaper", List.of("&7Left click NPC for smart search")));
+        inv.setItem(20, item(Material.WRITABLE_BOOK, "&aClaim Daily Book", List.of("&7One per day from NPC.")));
+        inv.setItem(24, item(Material.TRIPWIRE_HOOK, "&aClaim Daily Room Key", List.of("&7One per day from NPC.")));
         player.openInventory(inv);
     }
 

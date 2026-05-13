@@ -62,6 +62,21 @@ public class GUIListener implements Listener {
             player.sendMessage(ChatColor.GREEN + "Updated favorites.");
             return;
         }
+        if (title.equals(plugin.getGuiManager().libraryProfileTitle())) {
+            e.setCancelled(true);
+            if (!(e.getWhoClicked() instanceof Player player)) return;
+            if (e.getRawSlot() == 20) {
+                boolean given = plugin.getBookStorageManager().giveDailyWritableBook(player);
+                player.sendMessage(given ? ChatColor.GREEN + "Daily writable book claimed." : ChatColor.RED + "You already claimed today's daily book.");
+            } else if (e.getRawSlot() == 24) {
+                boolean given = plugin.getRentalManager().giveDailyKey(player);
+                player.sendMessage(given ? ChatColor.GREEN + "Daily room key claimed." : ChatColor.RED + "You already claimed today's daily room key.");
+            } else if (e.getRawSlot() == 15) {
+                player.closeInventory();
+                plugin.getNewspaperManager().sendDailyPaper(player);
+            }
+            return;
+        }
         if (title.equals(plugin.getGuiManager().lecternBookEditorTitle())) {
             handleLecternBookEditorClick(e);
             return;

@@ -22,12 +22,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.time.LocalDate;
 
 public class RentalManager {
     private final InfinityLibraryPlugin plugin;
     private final File file;
     private final NamespacedKey keyToken;
     private final Map<UUID, RentalRecord> rentals = new ConcurrentHashMap<>();
+    private final Map<UUID, String> dailyKeyClaims = new ConcurrentHashMap<>();
 
     public RentalManager(InfinityLibraryPlugin plugin) {
         this.plugin = plugin;
@@ -46,11 +48,15 @@ public class RentalManager {
             if (section == null) continue;
             rentals.put(UUID.fromString(key), RentalRecord.read(section));
         }
+        ConfigurationSection daily = y.getConfigurationSection("daily-key-claims");
+        if (daily != null) for (String key : daily.getKeys(false)) dailyKeyClaims.put(UUID.fromString(key), daily.getString(key, ""));
     }
     public void save() {
         YamlConfiguration y = new YamlConfiguration();
         ConfigurationSection root = y.createSection("rentals");
         rentals.forEach((uuid, record) -> record.write(root.createSection(uuid.toString())));
+        ConfigurationSection daily = y.createSection("daily-key-claims");
+        dailyKeyClaims.forEach((uuid, day) -> daily.set(uuid.toString(), day));
         try { y.save(file); } catch (IOException ignored) { }
     }
 
@@ -96,6 +102,14 @@ public class RentalManager {
     }
 
     public int claimedCount() { return rentals.size(); }
+    public boolean giveDailyKey(Player player) {
+        String today = LocalDate.now().toString();
+        if (today.equals(dailyKeyClaims.get(player.getUniqueId()))) return false;
+        player.getInventory().addItem(createRentalKey());
+        dailyKeyClaims.put(player.getUniqueId(), today);
+        save();
+        return true;
+    }
 
     private void spawnStatsHologram(Player owner, PlacedRoom pr) {
         Vector3i c = pr.origin().add(new Vector3i(pr.size().x()/2, 2, pr.size().z()/2));

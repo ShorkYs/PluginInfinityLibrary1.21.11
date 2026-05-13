@@ -44,3 +44,6 @@ mysql:
 
 renting:
   key-cost: 250.0
+
+discord:
+  webhook-url: ""
