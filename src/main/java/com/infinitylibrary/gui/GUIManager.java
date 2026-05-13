@@ -167,4 +167,14 @@ public class GUIManager {
         player.openInventory(inv);
     }
 
+    public String libraryProfileTitle() { return color("&5Library Profile"); }
+    public void openLibraryProfile(Player player) {
+        Inventory inv = Bukkit.createInventory(null, 27, libraryProfileTitle());
+        for (int i=0;i<27;i++) inv.setItem(i, item(Material.BLACK_STAINED_GLASS_PANE, " ", List.of()));
+        inv.setItem(11, item(Material.PLAYER_HEAD, "&d" + player.getName(), List.of("&7Books written: &f" + plugin.getBookStorageManager().playerCount(player.getUniqueId()))));
+        inv.setItem(13, item(Material.GOLD_INGOT, "&6Balance", List.of("&7" + plugin.getEconomyManager().format(plugin.getEconomyManager().balance(player)))));
+        inv.setItem(15, item(Material.PAPER, "&bDaily Newspaper", List.of("&7Left click NPC for smart search")));
+        player.openInventory(inv);
+    }
+
 }

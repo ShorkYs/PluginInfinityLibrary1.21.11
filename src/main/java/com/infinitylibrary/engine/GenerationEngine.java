@@ -135,6 +135,7 @@ public class GenerationEngine {
             PlacedRoom pr = new PlacedRoom(UUID.randomUUID(), start.id(), origin, start.size());
             placed.add(pr); queuePlacement(start, origin, RoomTransform.IDENTITY);
         }
+        plugin.getBookStorageManager().clearShelfLocations();
         save();
     }
 

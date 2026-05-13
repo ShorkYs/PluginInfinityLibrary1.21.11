@@ -329,6 +329,30 @@ public class BookStorageManager {
         return Optional.ofNullable(list.get(ThreadLocalRandom.current().nextInt(list.size())).toItemStack());
     }
 
+    public void clearShelfLocations() {
+        for (StoredBook book : new ArrayList<>(books.values())) books.put(book.id(), book.withLocation(""));
+        saveAsync();
+    }
+
+    public int createTemporaryStressBooks(Player contributor, int amount, int seconds) {
+        if (amount <= 0) return 0;
+        List<UUID> ids = new ArrayList<>();
+        for (int i = 0; i < amount; i++) {
+            ItemStack stack = new ItemStack(Material.WRITTEN_BOOK);
+            BookMeta meta = (BookMeta) stack.getItemMeta();
+            meta.setTitle("Stress Book #" + i);
+            meta.setAuthor(contributor.getName());
+            meta.setPages(List.of("Load testing page " + i));
+            stack.setItemMeta(meta);
+            UUID id = UUID.randomUUID();
+            ids.add(id);
+            books.put(id, new StoredBook(id, contributor.getUniqueId(), contributor.getName(), contributor.getUniqueId().toString(), contributor.getName(), true, meta.getTitle(), meta.getAuthor(), List.copyOf(meta.getPages()), stack.serialize(), Instant.now().toString(), "", "stress", "benchmark", "", ""));
+        }
+        saveAsync();
+        Bukkit.getScheduler().runTaskLater(plugin, () -> { ids.forEach(books::remove); saveAsync(); }, Math.max(20L, seconds * 20L));
+        return ids.size();
+    }
+
     public void populateBookshelf(Block block) {
         if (block.getType() != Material.CHISELED_BOOKSHELF || books.isEmpty()) return;
         Inventory inv = bookshelfInventory(block);

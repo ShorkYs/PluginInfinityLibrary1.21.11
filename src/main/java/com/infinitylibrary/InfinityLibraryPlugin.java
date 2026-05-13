@@ -9,12 +9,14 @@ import com.infinitylibrary.listener.BookListener;
 import com.infinitylibrary.listener.GUIListener;
 import com.infinitylibrary.listener.NewspaperListener;
 import com.infinitylibrary.listener.PlayerGenerationListener;
+import com.infinitylibrary.listener.RentalNpcListener;
 import com.infinitylibrary.navigation.RouteRegistry;
 import com.infinitylibrary.newspaper.NewspaperManager;
 import com.infinitylibrary.placeholder.LibraryPlaceholderExpansion;
 import com.infinitylibrary.recommendation.RecommendationEngine;
 import com.infinitylibrary.rental.RentalManager;
 import com.infinitylibrary.scoreboard.LibraryScoreboardManager;
+import com.infinitylibrary.rental.npc.RentalNpcManager;
 import com.infinitylibrary.room.RoomManager;
 import com.infinitylibrary.selection.SelectionManager;
 import com.infinitylibrary.storage.BookStorageManager;
@@ -34,6 +36,7 @@ public final class InfinityLibraryPlugin extends JavaPlugin {
     private RentalManager rentalManager;
     private EconomyManager economyManager;
     private LibraryScoreboardManager scoreboardManager;
+    private RentalNpcManager rentalNpcManager;
 
     @Override public void onEnable() {
         saveDefaultConfig();
@@ -47,6 +50,7 @@ public final class InfinityLibraryPlugin extends JavaPlugin {
         rentalManager = new RentalManager(this); rentalManager.load();
         economyManager = new EconomyManager(this); economyManager.hook();
         scoreboardManager = new LibraryScoreboardManager(this); scoreboardManager.start();
+        rentalNpcManager = new RentalNpcManager(this); rentalNpcManager.load();
         guiManager = new GUIManager(this);
         generationEngine = new GenerationEngine(this, roomManager); generationEngine.start();
         CommandHandler handler = new CommandHandler(this);
@@ -56,6 +60,7 @@ public final class InfinityLibraryPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new BookListener(this), this);
         getServer().getPluginManager().registerEvents(new GUIListener(this), this);
         getServer().getPluginManager().registerEvents(new NewspaperListener(this), this);
+        getServer().getPluginManager().registerEvents(new RentalNpcListener(this), this);
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) new LibraryPlaceholderExpansion(this).register();
         getLogger().info("InfinityLibraryPlugin enabled.");
     }
@@ -65,6 +70,7 @@ public final class InfinityLibraryPlugin extends JavaPlugin {
         if (bookStorageManager != null) bookStorageManager.saveNow();
         if (rentalManager != null) rentalManager.save();
         if (scoreboardManager != null) scoreboardManager.stop();
+        if (rentalNpcManager != null) rentalNpcManager.save();
         if (mySqlManager != null) mySqlManager.close();
     }
 
@@ -88,4 +94,5 @@ public final class InfinityLibraryPlugin extends JavaPlugin {
     public RentalManager getRentalManager() { return rentalManager; }
     public EconomyManager getEconomyManager() { return economyManager; }
     public LibraryScoreboardManager getScoreboardManager() { return scoreboardManager; }
+    public RentalNpcManager getRentalNpcManager() { return rentalNpcManager; }
 }

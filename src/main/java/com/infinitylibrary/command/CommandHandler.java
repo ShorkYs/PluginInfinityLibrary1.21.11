@@ -55,6 +55,8 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
                 case "rent" -> player(sender, p -> rentCommand(p, args));
                 case "whereami" -> player(sender, this::whereAmI);
                 case "dailynews" -> player(sender, p -> plugin.getNewspaperManager().sendDailyPaper(p));
+                case "bookstress" -> adminPlayer(sender, p -> stressBooks(p, args));
+                case "rentnpc" -> adminPlayer(sender, p -> rentNpc(p, args));
                 case "shelfcategory" -> player(sender, p -> shelfCategoryCommand(p, args));
                 case "reload" -> { requireAdmin(sender); plugin.reloadEverything(); msg(sender, "Infinity Library reloaded live."); }
                 default -> help(sender);
@@ -212,19 +214,43 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
         msg(player, "Current room: " + id + " (" + type + ")");
     }
 
+    private void stressBooks(Player player, String[] args) {
+        require(args, 3, "/il bookstress <amount> <seconds>");
+        int amount = Integer.parseInt(args[1]);
+        int seconds = Integer.parseInt(args[2]);
+        int created = plugin.getBookStorageManager().createTemporaryStressBooks(player, amount, seconds);
+        msg(player, "Created " + created + " temporary books for " + seconds + " seconds.");
+    }
+
+    private void rentNpc(Player player, String[] args) {
+        require(args, 2, "/il rentnpc <set|move|remove>");
+        if (args[1].equalsIgnoreCase("set") || args[1].equalsIgnoreCase("move")) {
+            plugin.getRentalNpcManager().placeOrMove(player.getLocation());
+            msg(player, "Rental NPC placed/moved.");
+            return;
+        }
+        if (args[1].equalsIgnoreCase("remove")) {
+            plugin.getRentalNpcManager().remove();
+            msg(player, "Rental NPC removed.");
+            return;
+        }
+        throw new IllegalArgumentException("/il rentnpc <set|move|remove>");
+    }
+
     private void adminPlayer(CommandSender s, PlayerAction action) { requireAdmin(s); player(s, action); }
     private void player(CommandSender s, PlayerAction action) { if (!(s instanceof Player p)) throw new IllegalArgumentException("Players only."); action.run(p); }
     private void requireAdmin(CommandSender s) { if (!s.hasPermission("infinitylibrary.admin")) throw new IllegalArgumentException("Missing permission infinitylibrary.admin"); }
     private void require(String[] args, int n, String usage) { if (args.length < n) throw new IllegalArgumentException(usage); }
     private void msg(CommandSender s, String m) { s.sendMessage(ChatColor.translateAlternateColorCodes('&', "&5[InfinityLibrary] &f" + m)); }
-    private void help(CommandSender s) { msg(s, "Commands: /il gui, roomgui, home, wand, connectionwand, variationwand, bookshelfcategorywand, readingtablewand, readingseatwand, wandmode, connectionmode, variationmode, bookshelfcategorymode, pos1, pos2, addconnection, clearconnections, clearvariations, saveroom, applyvariations, savedefault, editroom, deleteroom, listrooms, setrange, genrange, toggleblocking, setblocker, reset, setstart, book, bookmeta, shelfcategory, roomchance, rent, whereami, dailynews, reload"); }
+    private void help(CommandSender s) { msg(s, "Commands: /il gui, roomgui, home, wand, connectionwand, variationwand, bookshelfcategorywand, readingtablewand, readingseatwand, wandmode, connectionmode, variationmode, bookshelfcategorymode, pos1, pos2, addconnection, clearconnections, clearvariations, saveroom, applyvariations, savedefault, editroom, deleteroom, listrooms, setrange, genrange, toggleblocking, setblocker, reset, setstart, book, bookmeta, shelfcategory, roomchance, rent, rentnpc, whereami, dailynews, bookstress, reload"); }
     @Override public List<String> onTabComplete(CommandSender s, Command c, String a, String[] args) {
-        if (args.length == 1) return List.of("gui","roomgui","stats","home","start","wand","connectionwand","connwand","variationwand","varwand","bookshelfcategorywand","shelfcatwand","readingtablewand","readingseatwand","wandmode","connectionmode","connmode","variationmode","varmode","bookshelfcategorymode","shelfcatmode","pos1","pos2","addconnection","clearconnections","clearvariations","saveroom","applyvariations","savedefault","editroom","deleteroom","listrooms","setrange","genrange","toggleblocking","setblocker","reset","setstart","book","bookmeta","shelfcategory","roomchance","rent","whereami","dailynews","reload").stream().filter(x -> x.startsWith(args[0].toLowerCase(Locale.ROOT))).toList();
+        if (args.length == 1) return List.of("gui","roomgui","stats","home","start","wand","connectionwand","connwand","variationwand","varwand","bookshelfcategorywand","shelfcatwand","readingtablewand","readingseatwand","wandmode","connectionmode","connmode","variationmode","varmode","bookshelfcategorymode","shelfcatmode","pos1","pos2","addconnection","clearconnections","clearvariations","saveroom","applyvariations","savedefault","editroom","deleteroom","listrooms","setrange","genrange","toggleblocking","setblocker","reset","setstart","book","bookmeta","shelfcategory","roomchance","rent","rentnpc","whereami","dailynews","bookstress","reload").stream().filter(x -> x.startsWith(args[0].toLowerCase(Locale.ROOT))).toList();
         if (args.length == 2 && args[0].equalsIgnoreCase("wandmode")) return List.of("pos1", "pos2");
         if (args.length == 2 && (args[0].equalsIgnoreCase("connectionmode") || args[0].equalsIgnoreCase("connmode"))) return List.of("conn");
         if (args.length == 2 && args[0].equalsIgnoreCase("book")) return List.of("public", "private", "edit");
         if (args.length == 3 && (args[0].equalsIgnoreCase("saveroom") || args[0].equalsIgnoreCase("editroom") || args[0].equalsIgnoreCase("savedefault"))) return List.of("FILLER","BOOK","READ","RENTING");
         if (args.length == 2 && args[0].equalsIgnoreCase("rent")) return List.of("buykey","claim","invite","lock");
+        if (args.length == 2 && args[0].equalsIgnoreCase("rentnpc")) return List.of("set","move","remove");
         return List.of();
     }
     private interface PlayerAction { void run(Player player); }

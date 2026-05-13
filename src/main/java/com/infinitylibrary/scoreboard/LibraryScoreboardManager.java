@@ -25,7 +25,11 @@ public class LibraryScoreboardManager {
     public void stop() { if (task != -1) Bukkit.getScheduler().cancelTask(task); }
 
     private void tick() {
-        for (Player player : Bukkit.getOnlinePlayers()) render(player);
+        int claimed = plugin.getRentalManager().claimedCount();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            render(player);
+            player.setPlayerListFooter(ChatColor.LIGHT_PURPLE + "Renting rooms claimed: " + ChatColor.WHITE + claimed);
+        }
     }
 
     public void render(Player player) {

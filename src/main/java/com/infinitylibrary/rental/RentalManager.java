@@ -75,7 +75,7 @@ public class RentalManager {
         if (placedRoom.isEmpty()) throw new IllegalArgumentException("Stand inside a generated room to claim it.");
         Room room = plugin.getRoomManager().get(placedRoom.get().roomId()).orElseThrow();
         if (room.type() != RoomType.RENTING) throw new IllegalArgumentException("This room is not a RENTING room.");
-        rentals.put(player.getUniqueId(), new RentalRecord(placedRoom.get().instanceId().toString(), false, new HashSet<>()));
+        rentals.put(player.getUniqueId(), new RentalRecord(placedRoom.get().instanceId().toString(), false, new HashSet<>(), System.currentTimeMillis() + 3600_000L));
         hand.setAmount(hand.getAmount() - 1);
         spawnStatsHologram(player, placedRoom.get());
         save();
@@ -95,6 +95,8 @@ public class RentalManager {
         save();
     }
 
+    public int claimedCount() { return rentals.size(); }
+
     private void spawnStatsHologram(Player owner, PlacedRoom pr) {
         Vector3i c = pr.origin().add(new Vector3i(pr.size().x()/2, 2, pr.size().z()/2));
         Location location = new Location(plugin.getGenerationEngine().ensureWorld(), c.x() + 0.5, c.y(), c.z() + 0.5);
@@ -108,9 +110,10 @@ public class RentalManager {
         private final String roomInstance;
         private boolean locked;
         private final Set<String> invited;
-        private RentalRecord(String roomInstance, boolean locked, Set<String> invited) { this.roomInstance = roomInstance; this.locked = locked; this.invited = invited; }
-        static RentalRecord read(ConfigurationSection section) { return new RentalRecord(section.getString("room-instance", ""), section.getBoolean("locked", false), new HashSet<>(section.getStringList("invited"))); }
-        void write(ConfigurationSection section) { section.set("room-instance", roomInstance); section.set("locked", locked); section.set("invited", new ArrayList<>(invited)); }
+        private final long expiresAt;
+        private RentalRecord(String roomInstance, boolean locked, Set<String> invited, long expiresAt) { this.roomInstance = roomInstance; this.locked = locked; this.invited = invited; this.expiresAt = expiresAt; }
+        static RentalRecord read(ConfigurationSection section) { return new RentalRecord(section.getString("room-instance", ""), section.getBoolean("locked", false), new HashSet<>(section.getStringList("invited")), section.getLong("expires-at", 0L)); }
+        void write(ConfigurationSection section) { section.set("room-instance", roomInstance); section.set("locked", locked); section.set("invited", new ArrayList<>(invited)); section.set("expires-at", expiresAt); }
         boolean locked() { return locked; }
         void setLocked(boolean locked) { this.locked = locked; }
         Set<String> invited() { return invited; }
