@@ -32,3 +32,18 @@ lectern-gui:
 
 bookshelf-return-gui:
   title: "&5Return Library Book"
+
+mysql:
+  enabled: false
+  host: "localhost"
+  port: 3306
+  database: "infinitylibrary"
+  username: "root"
+  password: ""
+  pool-size: 8
+
+renting:
+  key-cost: 250.0
+
+discord:
+  webhook-url: ""

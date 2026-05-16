@@ -1,7 +1,7 @@
 package com.infinitylibrary.model;
 
 public enum RoomType {
-    FILLER, BOOK, READ;
+    FILLER, BOOK, READ, RENTING;
 
     public static RoomType parse(String value) {
         for (RoomType type : values()) {

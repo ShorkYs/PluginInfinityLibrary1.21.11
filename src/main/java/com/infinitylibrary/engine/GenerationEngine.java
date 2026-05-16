@@ -111,10 +111,11 @@ public class GenerationEngine {
         World w = ensureWorld();
         Material blockMaterial = Material.matchMaterial(plugin.getConfig().getString("generation.path-blocking.material", "SMOOTH_STONE"));
         if (blockMaterial == null) blockMaterial = Material.SMOOTH_STONE;
+        // Seal only the doorway aperture that belongs to the current (parent) room.
+        // This keeps path blocking local to the room where expansion failed.
         Vector3i base = parent.origin().add(target.position());
-        Vector3i outward = faceVector(target.direction());
         for (int dy=0;dy<target.height();dy++) for (int dw=-(target.width()/2);dw<=target.width()/2;dw++) {
-            int x = base.x() + outward.x(), y = base.y() + dy + outward.y(), z = base.z() + outward.z();
+            int x = base.x(), y = base.y() + dy, z = base.z();
             if (target.direction()==BlockFace.NORTH || target.direction()==BlockFace.SOUTH) x += dw;
             else if (target.direction()==BlockFace.EAST || target.direction()==BlockFace.WEST) z += dw;
             w.getBlockAt(x,y,z).setType(blockMaterial, false);
@@ -134,6 +135,7 @@ public class GenerationEngine {
             PlacedRoom pr = new PlacedRoom(UUID.randomUUID(), start.id(), origin, start.size());
             placed.add(pr); queuePlacement(start, origin, RoomTransform.IDENTITY);
         }
+        plugin.getBookStorageManager().clearShelfLocations();
         save();
     }
 
@@ -306,6 +308,18 @@ public class GenerationEngine {
             generated += (after - before);
         }
         return generated;
+    }
+
+    public Optional<PlacedRoom> roomAt(Location location) {
+        Vector3i point = Vector3i.from(location);
+        synchronized (placed) {
+            for (PlacedRoom pr : placed) {
+                if (point.x() >= pr.origin().x() && point.x() < pr.origin().x() + pr.size().x()
+                        && point.y() >= pr.origin().y() && point.y() < pr.origin().y() + pr.size().y()
+                        && point.z() >= pr.origin().z() && point.z() < pr.origin().z() + pr.size().z()) return Optional.of(pr);
+            }
+        }
+        return Optional.empty();
     }
 
     public boolean placeRoomImmediately(String roomId) {

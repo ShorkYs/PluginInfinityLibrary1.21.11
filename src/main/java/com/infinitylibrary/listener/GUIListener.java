@@ -43,6 +43,40 @@ public class GUIListener implements Listener {
             }
             return;
         }
+
+        if (title.equals(plugin.getGuiManager().bookSearchTitle())) {
+            e.setCancelled(true);
+            if (!(e.getWhoClicked() instanceof Player player)) return;
+            if (e.getRawSlot() == 10) {
+                player.closeInventory();
+                plugin.getBookStorageManager().beginBookSearchPrompt(player);
+            }
+            return;
+        }
+        if (title.equals(plugin.getGuiManager().settingsTitle())) {
+            e.setCancelled(true);
+            if (!(e.getWhoClicked() instanceof Player player)) return;
+            if (e.getRawSlot() == 11) plugin.getBookStorageManager().toggleFavoriteCategory(player.getUniqueId(), "lore");
+            if (e.getRawSlot() == 13) plugin.getBookStorageManager().toggleFavoriteCategory(player.getUniqueId(), "history");
+            if (e.getRawSlot() == 15) plugin.getBookStorageManager().toggleFavoriteTag(player.getUniqueId(), "pvp");
+            player.sendMessage(ChatColor.GREEN + "Updated favorites.");
+            return;
+        }
+        if (title.equals(plugin.getGuiManager().libraryProfileTitle())) {
+            e.setCancelled(true);
+            if (!(e.getWhoClicked() instanceof Player player)) return;
+            if (e.getRawSlot() == 20) {
+                boolean given = plugin.getBookStorageManager().giveDailyWritableBook(player);
+                player.sendMessage(given ? ChatColor.GREEN + "Daily writable book claimed." : ChatColor.RED + "You already claimed today's daily book.");
+            } else if (e.getRawSlot() == 24) {
+                boolean given = plugin.getRentalManager().giveDailyKey(player);
+                player.sendMessage(given ? ChatColor.GREEN + "Daily room key claimed." : ChatColor.RED + "You already claimed today's daily room key.");
+            } else if (e.getRawSlot() == 15) {
+                player.closeInventory();
+                plugin.getNewspaperManager().sendDailyPaper(player);
+            }
+            return;
+        }
         if (title.equals(plugin.getGuiManager().lecternBookEditorTitle())) {
             handleLecternBookEditorClick(e);
             return;
@@ -60,9 +94,16 @@ public class GUIListener implements Listener {
             player.closeInventory();
         } else if (e.getRawSlot() == 11) {
             player.closeInventory();
-            plugin.getBookStorageManager().beginSearchPrompt(player);
+            plugin.getGuiManager().openBookSearchMenu(player);
         } else if (e.getRawSlot() == 15) {
             plugin.getGuiManager().openStats(player);
+        } else if (e.getRawSlot() == 20) {
+            plugin.getGuiManager().openBookSearchMenu(player);
+        } else if (e.getRawSlot() == 24) {
+            plugin.getGuiManager().openSettings(player);
+        } else if (e.getRawSlot() == 22) {
+            player.closeInventory();
+            plugin.getNewspaperManager().sendDailyPaper(player);
         }
     }
 
